@@ -1,0 +1,97 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance & Web Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
+</head>
+<body class="bg-gradient-to-r from-gray-900 to-gray-700 flex flex-col min-h-screen">
+    <!-- Navigation Bar -->
+    <nav class="bg-gray-800 w-full p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="#" class="text-white text-2xl font-bold">Finance & Web Agent</a>
+            <div class="flex items-center space-x-4">
+                <a href="#" class="text-gray-300 hover:text-white transition duration-300">Home</a>
+                <a href="#" class="text-gray-300 hover:text-white transition duration-300">About</a>
+                <a href="#" class="text-gray-300 hover:text-white transition duration-300">Services</a>
+                <a href="#" class="text-gray-300 hover:text-white transition duration-300">Contact</a>
+                <a href="#" class="text-gray-300 hover:text-white transition duration-300" onclick="toggleModal()">Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex flex-grow">
+        <!-- Sidebar for Chat History -->
+        <aside class="bg-gray-800 text-white w-64 p-4 flex-shrink-0">
+            <h3 class="text-xl font-bold mb-4">Chat History</h3>
+            <ul id="chatHistory" class="space-y-2">
+                <!-- Chat history items will be appended here -->
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex flex-col items-center justify-center flex-grow p-4">
+            <div class="bg-white shadow-2xl rounded-lg p-8 w-full max-w-lg h-full">
+                <h2 class="text-3xl font-bold mb-6 text-center text-gray-900">Finance & Web Agent</h2>
+                <div class="flex flex-col sm:flex-row items-center mb-6">
+                    <input type="text" id="query" class="flex-grow p-3 border border-gray-300 rounded-md mb-2 sm:mb-0 sm:mr-2 focus:outline-none focus:ring-2 focus:ring-gray-500" placeholder="Ask a question...">
+                    <button onclick="fetchData()" class="p-3 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition duration-300 flex items-center">
+                        <i class="fas fa-paper-plane mr-2"></i> Submit
+                    </button>
+                </div>
+                <div id="response" class="mt-6 p-4 border border-gray-300 rounded-md bg-gray-50 min-h-[100px] flex items-center justify-center text-gray-700"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+            <h2 class="text-2xl font-bold mb-4 text-center">Login</h2>
+            <input type="text" class="w-full p-3 border border-gray-300 rounded-md mb-4" placeholder="Username">
+            <input type="password" class="w-full p-3 border border-gray-300 rounded-md mb-4" placeholder="Password">
+            <button class="w-full p-3 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition duration-300">Login</button>
+            <button onclick="toggleModal()" class="w-full p-3 mt-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition duration-300">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        async function fetchData() {
+            const query = document.getElementById("query").value;
+            const responseBox = document.getElementById("response");
+            responseBox.innerHTML = "<i class='fas fa-spinner fa-spin text-gray-700'></i> Loading...";
+            
+            const response = await fetch("/api/query", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query })
+            });
+    
+            const data = await response.json();
+            
+            // Convert Markdown to HTML using Showdown
+            const converter = new showdown.Converter({ tables: true });
+            responseBox.innerHTML = converter.makeHtml(data.response || "No response received.");
+
+            // Add to chat history
+            const chatHistory = document.getElementById("chatHistory");
+            const chatItem = document.createElement("li");
+            chatItem.className = "p-2 bg-gray-700 rounded-md";
+            chatItem.innerHTML = `<strong>Q:</strong> ${query}<br><strong>A:</strong> ${data.response || "No response received."}`;
+            chatHistory.appendChild(chatItem);
+        }
+
+        function toggleModal() {
+            const modal = document.getElementById("loginModal");
+            modal.classList.toggle("hidden");
+        }
+
+        document.querySelector('a[href="#login"]').addEventListener('click', function(event) {
+            event.preventDefault();
+            toggleModal();
+        });
+    </script>
+</body>
+</html>
